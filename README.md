@@ -116,20 +116,13 @@ menus = [
     )
 ]
 
-# Instantiate the MenuDrivenFigure object
-mdf = MenuDrivenFigure(
-    data=data,
-    menus=menus,
-)
-
 # Define the function used to render the plot, driven
 # by the data and menu selections
-@mdf.attach_plot()
-def plot_iris_data(data, menus):
+def plot_iris_data(data, selections):
 
     # Subset the plotting data based on the dropdown menu
     plot_df = data.query(
-        f"species == '{menus['display-species']}'"
+        f"species == '{selections['display-species']}'"
     )
 
     # Make a figure using Plotly
@@ -140,16 +133,58 @@ def plot_iris_data(data, menus):
         x="sepal_width",
         y="sepal_length",
         # Add a title based on the user input
-        title=menus['plot-title']
+        title=selections['plot-title']
     )
 
     # Return the figure
     return fig
 
+# Instantiate the MenuDrivenFigure object
+mdf = MenuDrivenFigure(
+    data=data,
+    menus=menus,
+    function=plot_iris_data,
+)
+
 # Launch the Dash/Flask app
-app.run_server(
+mdf.run_server(
     host='0.0.0.0',
     port=8080,
     debug=True,
 )
 ```
+
+## Optional Arguments
+
+While `MenuDrivenFigure` can be used to interactively render a figure
+with only the arguments for `data`, `menus`, and `function` as described
+above, further customizations to the display can be implemented with
+the optional arguments described below.
+
+### Number of Menu Columns
+
+By default, each menu will be rendered with each parameter filled
+out across two columns. The number of columns may be modified using
+the `param_menu_ncols` flag when initializing the `MenuDrivenFigure`
+object.
+
+### Visual Theme
+
+The visual style of the displayed app may be specified using the
+`theme` flag when initializing the `MenuDrivenFigure` object. A gallery
+of all available themes may be seen
+[on Bootswatch](https://www.bootstrapcdn.com/bootswatch/).
+By default, the displayed app will render using the `LUMEN` theme.
+Note that the theme name must be provided as a string in all caps.
+
+### Website Title
+
+The title displayed at the top of the web browser may be modified
+using the `title` flag when initializing the `MenuDrivenFigure` object.
+The title is set to "Interactive Figure" by default.
+
+### Hostname and Port
+
+The host and port on which the final app is served may be modified
+using the `host` and `port` flags to the `run_server()` function,
+as demonstrated above in the example code.
