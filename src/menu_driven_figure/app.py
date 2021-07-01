@@ -120,7 +120,7 @@ class MenuDrivenFigure:
                 )
                 for menu_ix, param_menu in enumerate(self.menus)
             ],
-            brand="Annotated Heatmap",
+            brand=self.title,
             color="primary",
             dark=True,
         )
