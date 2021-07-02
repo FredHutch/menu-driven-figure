@@ -356,12 +356,25 @@ class MenuDrivenFigure:
         """Specify the footer to place at the bottom of each param menu."""
 
         return [
-            dbc.Button(
-                "Close Menu & Redraw",
-                id=dict(
-                    menu=menu_id,
-                    elem="close-button"
-                )
+            dbc.Row(
+                [
+                    dbc.Col(dbc.Button(
+                        "Redraw",
+                        id=dict(
+                            menu=menu_id,
+                            elem="redraw-button"
+                        ),
+                        block=True,
+                    )),
+                    dbc.Col(dbc.Button(
+                        "Close Menu & Redraw",
+                        id=dict(
+                            menu=menu_id,
+                            elem="close-button"
+                        ),
+                        block=True,
+                    ))
+                ]
             )
         ]
 
@@ -464,12 +477,13 @@ class MenuDrivenFigure:
                 Output("notification-toast", "children"),
             ],
             [
+                Input({"menu": ALL, "elem": "redraw-button"}, "n_clicks"),
                 Input({"menu": ALL, "elem": "close-button"}, "n_clicks"),
                 Input({"menu": ALL, "elem": "open-button"}, "n_clicks"),
                 Input("current-settings", "children"),
             ]
         )
-        def figure_callback(close_clicks, open_clicks, selected_params):
+        def figure_callback(redraw_clicks, close_clicks, open_clicks, selected_params):
 
             # If the open buttons have never been pressed
             if all([v is None for v in open_clicks]):
@@ -489,7 +503,7 @@ class MenuDrivenFigure:
                 trigger = ctx.triggered[0]['prop_id']
 
                 # If this was triggered by the user clicking "Close and Redraw"
-                if "close-button" in trigger:
+                if "close-button" in trigger or "redraw-button" in trigger:
 
                     # Then we will redraw the figure
                     pass
