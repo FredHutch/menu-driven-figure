@@ -5,7 +5,7 @@ import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, ALL
+from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 from functools import lru_cache
 import json
@@ -28,6 +28,7 @@ class MenuDrivenFigure:
         param_menu_ncols=2,    # Number of columns in each parameter menu
         theme="LUMEN",
         title="Interactive Figure",
+        initial_settings=None
     ):
 
         # Save the configuration of the menu
@@ -43,6 +44,16 @@ class MenuDrivenFigure:
         self.param_menu_ncols = param_menu_ncols
         self.theme = theme
         self.title = title
+
+        # If any initial settings were provided,
+        if initial_settings is not None:
+            #  save them
+            self.initial_settings = initial_settings
+
+        # Otherwise
+        else:
+            # Save an empty dict
+            self.initial_settings = {}
 
     def render_figure(self, selected_params):
         """Function to run the plotting function provided by the user."""
@@ -120,6 +131,18 @@ class MenuDrivenFigure:
                     )
                 )
                 for menu_ix, param_menu in enumerate(self.menus)
+            ] + [
+                # Button to download the settings
+                dbc.Button(
+                    "Download Settings",
+                    id="download-settings-button",
+                    outline=True,
+                    style=dict(
+                        margin="5px"
+                    )
+                ),
+                # Allow the user to download the settings as JSON
+                dcc.Download(id="download-settings")
             ],
             brand=self.title,
             color="primary",
@@ -240,9 +263,7 @@ class MenuDrivenFigure:
         elem_id = dict(input_elem=param_item["elem_id"])
 
         # Get the default value
-        default_value = self.data.get(    # Check if the user provided --params
-            "params", {}
-        ).get(
+        default_value = self.initial_settings.get(    # Check if the user provided initial_settings
             param_item["elem_id"],        # Check if this element has a value
             param_item.get("value", [])   # If not, check for a default config
         )                                 # Falling back to an empty list
@@ -308,7 +329,7 @@ class MenuDrivenFigure:
             elem = dcc.Slider(
                 min=min_val,
                 max=max_val,
-                value=param_item["value"],
+                value=default_value,
                 marks={x: f"{x}{param_item.get('suffix', '')}" for x in [
                     int(min_val) if min_val == int(min_val) else min_val,
                     int(mid_val) if mid_val == int(mid_val) else mid_val,
@@ -324,7 +345,7 @@ class MenuDrivenFigure:
             elem = dbc.Input(
                 id=elem_id,
                 type=param_item["input_type"],
-                value=param_item.get("value")
+                value=default_value
             )
 
         # We need to add support for this parameter type
@@ -468,6 +489,16 @@ class MenuDrivenFigure:
 
             # Format the values as key1=value1;key2=value2;
             return json.dumps(selected_params)
+
+        # Download the settings when the user clicks the "Download Settings" button
+        @app.callback(
+            Output("download-settings", "data"),
+            [Input("download-settings-button", "n_clicks")],
+            [State("current-settings", "children")],
+            prevent_initial_call=True,
+        )
+        def download_settings(n_clicks, selected_params):
+            return dict(content=selected_params, filename="gig-map.settings.json")
 
         # Render the figure based on changes to the URL when the user clicks "Redraw"
         @app.callback(
