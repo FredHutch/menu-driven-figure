@@ -6,6 +6,7 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, ALL
+from dash.exceptions import PreventUpdate
 from functools import lru_cache
 import json
 import plotly.graph_objects as go
@@ -356,7 +357,7 @@ class MenuDrivenFigure:
 
         return [
             dbc.Button(
-                "Hide Menu",
+                "Close Menu & Redraw",
                 id=dict(
                     menu=menu_id,
                     elem="close-button"
@@ -455,7 +456,7 @@ class MenuDrivenFigure:
             # Format the values as key1=value1;key2=value2;
             return json.dumps(selected_params)
 
-        # Render the figure based on changes to the URL
+        # Render the figure based on changes to the URL when the user clicks "Redraw"
         @app.callback(
             [
                 Output("rendered-figure", "figure"),
@@ -463,10 +464,41 @@ class MenuDrivenFigure:
                 Output("notification-toast", "children"),
             ],
             [
-                Input("current-settings", "children")
+                Input({"menu": ALL, "elem": "close-button"}, "n_clicks"),
+                Input({"menu": ALL, "elem": "open-button"}, "n_clicks"),
+                Input("current-settings", "children"),
             ]
         )
-        def figure_callback(selected_params):
+        def figure_callback(close_clicks, open_clicks, selected_params):
+
+            # If the open buttons have never been pressed
+            if all([v is None for v in open_clicks]):
+
+                # Then let's go ahead and redraw the figure, since this
+                # callback must have been triggered by the default
+                # parameters loading
+                pass
+
+            # Otherwise
+            else:
+
+                # Get the context which triggered the callback
+                ctx = dash.callback_context
+
+                # Get the element which triggered the callback
+                trigger = ctx.triggered[0]['prop_id']
+
+                # If this was triggered by the user clicking "Close and Redraw"
+                if "close-button" in trigger:
+
+                    # Then we will redraw the figure
+                    pass
+
+                # Otherwise
+                else:
+
+                    # Do not redraw the figure
+                    raise PreventUpdate
 
             # Parse the parameters from the serialized JSON
             selected_params = self.parse_params(selected_params)
