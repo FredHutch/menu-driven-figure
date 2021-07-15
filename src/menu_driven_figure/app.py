@@ -305,10 +305,7 @@ class MenuDrivenFigure:
 
             elem = dcc.Dropdown(
                 options=[
-                    dict(
-                        label=item_str,
-                        value=item_str
-                    )
+                    item_str if isinstance(item_str, dict) else dict(label=item_str, value=item_str)
                     for item_str in param_item["options"]
                 ],
                 value=default_value,
