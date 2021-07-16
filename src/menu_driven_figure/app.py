@@ -78,6 +78,38 @@ class MenuDrivenFigure:
             # Save an empty dict
             self.initial_settings = {}
 
+        ##################
+        # SET UP THE APP #
+        ##################
+
+        # Dash app
+        self.app = dash.Dash(
+            __name__,
+            external_stylesheets=[
+                # Set the bootstrap theme
+                dbc.themes.__dict__[self.theme]
+            ],
+        )
+
+        self.app.title = self.title
+
+
+        #####################
+        # SET UP APP LAYOUT #
+        #####################
+
+        # Set up the layout of the app
+        self.app.layout = self.layout
+
+
+        ####################
+        # SET UP CALLBACKS #
+        ####################
+
+        # Decorate the callback functions with @app.callback as appropriate
+        self.decorate_callbacks(self.app)
+
+
     def layout(self):
         """Define the layout of the app."""
 
@@ -707,52 +739,15 @@ class MenuDrivenFigure:
     ):
         """Launch a flask server rendering the supplied plot driven by menu selections."""
 
-        # Assert that a plotting function has been attached
-        msg = "Use attach_plot() to specify the plotting function"
-        assert self.plotting_function is not None, msg
-
-
-        ##################
-        # SET UP THE APP #
-        ##################
-
-        # Dash app
-        app = dash.Dash(
-            __name__,
-            external_stylesheets=[
-                # Set the bootstrap theme
-                dbc.themes.__dict__[self.theme]
-            ],
-        )
-
-        app.title = self.title
-
-
-        #####################
-        # SET UP APP LAYOUT #
-        #####################
-
-        # Set up the layout of the app
-        app.layout = self.layout
-
-
-        ####################
-        # SET UP CALLBACKS #
-        ####################
-
-        # Decorate the callback functions with @app.callback as appropriate
-        self.decorate_callbacks(app)
-
-
-        ##############
-        # SET UP APP #
-        ##############
+        ###############
+        # RUN THE APP #
+        ###############
 
         # Used for gunicorn execution
-        server = app.server
+        server = self.app.server
 
         # Run the app
-        app.run_server(
+        self.app.run_server(
             host=host,
             port=port,
             debug=debug,
