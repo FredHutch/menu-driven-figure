@@ -78,14 +78,6 @@ class MenuDrivenFigure:
             # Save an empty dict
             self.initial_settings = {}
 
-    def render_figure(self, selected_params):
-        """Function to run the plotting function provided by the user."""
-
-        return self.plotting_function(
-            self.data,
-            selected_params
-        )
-
     def layout(self):
         """Define the layout of the app."""
 
@@ -99,18 +91,22 @@ class MenuDrivenFigure:
                 self.hidden_div("past-settings"),
                 self.hidden_div("future-settings"),
 
-                # Toast used for notifications
-                self.notification_toast(),
-
                 # Navbar
                 self.navbar(),
 
                 # Parameter menu items
                 self.parameter_menus()
+
             ] + [
 
                 # Plot area for the figure(s)
                 self.figure_display(elem_id)
+                for elem_id in self.figures
+
+            ] + [
+
+                # Toast used for notifications
+                self.notification_toast(elem_id=f"{elem_id}-toast"),
                 for elem_id in self.figures
 
             ]
@@ -124,11 +120,11 @@ class MenuDrivenFigure:
             style=dict(display='none')
         )
 
-    def notification_toast(self):
+    def notification_toast(self, elem_id="notification-toast"):
         # Set up a toast to use for notifications
         return dbc.Toast(
             header="Notification",
-            id="notification-toast",
+            id=elem_id,
             dismissable=True,
             is_open=False,
             style=dict(
@@ -522,71 +518,72 @@ class MenuDrivenFigure:
         def download_settings(n_clicks, selected_params):
             return dict(content=selected_params, filename="gig-map.settings.json")
 
-        # Render the figure based on changes to the URL when the user clicks "Redraw"
-        @app.callback(
-            [
-                Output("rendered-figure", "figure"),
-                Output("notification-toast", "is_open"),
-                Output("notification-toast", "children"),
-            ],
-            [
-                Input({"menu": ALL, "elem": "redraw-button"}, "n_clicks"),
-                Input({"menu": ALL, "elem": "close-button"}, "n_clicks"),
-                Input({"menu": ALL, "elem": "open-button"}, "n_clicks"),
-                Input("current-settings", "children"),
-            ]
-        )
-        def figure_callback(redraw_clicks, close_clicks, open_clicks, selected_params):
+        # Render the figure(s) based on changes to the URL when the user clicks "Redraw"
+        for elem_id, drawing_function in self.function.items():
+            @app.callback(
+                [
+                    Output(elem_id, "figure"),
+                    Output(f"{elem_id}-toast", "is_open"),
+                    Output(f"{elem_id}-toast", "children"),
+                ],
+                [
+                    Input({"menu": ALL, "elem": "redraw-button"}, "n_clicks"),
+                    Input({"menu": ALL, "elem": "close-button"}, "n_clicks"),
+                    Input({"menu": ALL, "elem": "open-button"}, "n_clicks"),
+                    Input("current-settings", "children"),
+                ]
+            )
+            def figure_callback(redraw_clicks, close_clicks, open_clicks, selected_params):
 
-            # If the open buttons have never been pressed
-            if all([v is None for v in open_clicks]):
+                # If the open buttons have never been pressed
+                if all([v is None for v in open_clicks]):
 
-                # Then let's go ahead and redraw the figure, since this
-                # callback must have been triggered by the default
-                # parameters loading
-                pass
-
-            # Otherwise
-            else:
-
-                # Get the context which triggered the callback
-                ctx = dash.callback_context
-
-                # Get the element which triggered the callback
-                trigger = ctx.triggered[0]['prop_id']
-
-                # If this was triggered by the user clicking "Close and Redraw"
-                if "close-button" in trigger or "redraw-button" in trigger:
-
-                    # Then we will redraw the figure
+                    # Then let's go ahead and redraw the figure, since this
+                    # callback must have been triggered by the default
+                    # parameters loading
                     pass
 
                 # Otherwise
                 else:
 
-                    # Do not redraw the figure
-                    raise PreventUpdate
+                    # Get the context which triggered the callback
+                    ctx = dash.callback_context
 
-            # Parse the parameters from the serialized JSON
-            selected_params = self.parse_params(selected_params)
+                    # Get the element which triggered the callback
+                    trigger = ctx.triggered[0]['prop_id']
 
-            # Try to render the figure
-            try:
+                    # If this was triggered by the user clicking "Close and Redraw"
+                    if "close-button" in trigger or "redraw-button" in trigger:
 
-                # Generate a figure object
-                fig = self.render_figure(selected_params)
+                        # Then we will redraw the figure
+                        pass
 
-                # If everything went well, just show the figure
-                return fig, False, None
+                    # Otherwise
+                    else:
 
-            # If there was an error
-            except Exception as e:
+                        # Do not redraw the figure
+                        raise PreventUpdate
 
-                # Format a message to display
-                msg = f"Unable to render -- {e}"
+                # Parse the parameters from the serialized JSON
+                selected_params = self.parse_params(selected_params)
 
-                # Show an empty figure, and open the notification
-                return self.empty_plot(), True, msg
+                # Try to render the figure
+                try:
+
+                    # Generate a figure object
+                    fig = drawing_function(self.data, selected_params)
+
+                    # If everything went well, just show the figure
+                    return fig, False, None
+
+                # If there was an error
+                except Exception as e:
+
+                    # Format a message to display
+                    msg = f"Unable to render -- {e}"
+
+                    # Show an empty figure, and open the notification
+                    return self.empty_plot(), True, msg
 
         # Apply the `show_if` directive to each menu item
 
