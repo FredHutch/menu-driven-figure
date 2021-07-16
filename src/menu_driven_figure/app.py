@@ -26,6 +26,7 @@ class MenuDrivenFigure:
         data=None,
         function=None,
         figures=["rendered-figure"],
+        state_variables=[],     # Any hidden Div's to add
         param_menu_ncols=2,     # Number of columns in each parameter menu
         theme="LUMEN",
         title="Interactive Figure",
@@ -68,6 +69,9 @@ class MenuDrivenFigure:
         self.theme = theme
         self.title = title
 
+        # Save the additional state variables provided by the user
+        self.state_variables = state_variables
+
         # If any initial settings were provided,
         if initial_settings is not None:
             #  save them
@@ -100,7 +104,6 @@ class MenuDrivenFigure:
 
         # Set up the layout of the app
         self.app.layout = self.layout
-
 
         ####################
         # SET UP CALLBACKS #
@@ -140,6 +143,12 @@ class MenuDrivenFigure:
                 # Toast used for notifications
                 self.notification_toast(elem_id=f"{elem_id}-toast")
                 for elem_id in self.figures
+
+            ] + [
+
+                # Hidden Div's used to store state information
+                self.hidden_div(elem_id)
+                for elem_id in self.state_variables
 
             ]
         )
