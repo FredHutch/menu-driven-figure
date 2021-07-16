@@ -25,7 +25,8 @@ class MenuDrivenFigure:
         menus=None,
         data=None,
         function=None,
-        param_menu_ncols=2,    # Number of columns in each parameter menu
+        figures=["rendered-figure"],
+        param_menu_ncols=2,     # Number of columns in each parameter menu
         theme="LUMEN",
         title="Interactive Figure",
         initial_settings=None
@@ -36,6 +37,28 @@ class MenuDrivenFigure:
 
         # Save the provided data
         self.data = data
+
+        # The `figures` entry must be a list
+        assert isinstance(figures, list)
+        self.figures = figures
+
+        # If the provided `function` is a dictionary
+        if isinstance(function, dict):
+
+            # Make sure that every key matches a figure
+            for k in function.keys():
+                assert k in figures, "All keys in function dict must match `figures`"
+
+            self.function = function
+
+        # Otherwise, if `function` is not a dictionary,
+        else:
+            # we will assume that it is a single function
+            assert callable(function), "`function` must be a dict, or a single function"
+            # By default, a single function will drive the first figure
+            self.function = {
+                figures[0]: function
+            }
 
         # Save the plotting function
         self.plotting_function = function
@@ -83,10 +106,12 @@ class MenuDrivenFigure:
                 self.navbar(),
 
                 # Parameter menu items
-                self.parameter_menus(),
+                self.parameter_menus()
+            ] + [
 
-                # Plot area for the heatmap
-                self.figure_display(),
+                # Plot area for the figure(s)
+                self.figure_display(elem_id)
+                for elem_id in self.figures
 
             ]
         )
@@ -396,14 +421,14 @@ class MenuDrivenFigure:
             )
         ]
 
-    def figure_display(self):
+    def figure_display(self, elem_id="rendered-figure"):
         """Return the element used to render the display."""
         return dbc.Card(
             dbc.Row(
                 dbc.Col(
                     dbc.Spinner(
                         dcc.Graph(
-                            id="rendered-figure"
+                            id=elem_id
                         )
                     ),
                     width=12
