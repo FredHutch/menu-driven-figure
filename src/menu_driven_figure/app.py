@@ -106,7 +106,7 @@ class MenuDrivenFigure:
             ] + [
 
                 # Toast used for notifications
-                self.notification_toast(elem_id=f"{elem_id}-toast"),
+                self.notification_toast(elem_id=f"{elem_id}-toast")
                 for elem_id in self.figures
 
             ]
