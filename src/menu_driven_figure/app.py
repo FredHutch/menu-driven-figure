@@ -130,7 +130,10 @@ class MenuDrivenFigure:
                 self.navbar(),
 
                 # Parameter menu items
-                self.parameter_menus()
+                self.parameter_menus(),
+
+                # Allow the user to download the settings as JSON
+                dcc.Download(id="download-settings")
 
             ] + [
 
@@ -193,18 +196,6 @@ class MenuDrivenFigure:
                     )
                 )
                 for menu_ix, param_menu in enumerate(self.menus)
-            ] + [
-                # Button to download the settings
-                dbc.Button(
-                    "Download Settings",
-                    id="download-settings-button",
-                    outline=True,
-                    style=dict(
-                        margin="5px"
-                    )
-                ),
-                # Allow the user to download the settings as JSON
-                dcc.Download(id="download-settings")
             ],
             brand=self.title,
             color="primary",
@@ -453,6 +444,15 @@ class MenuDrivenFigure:
                             elem="close-button"
                         ),
                         block=True,
+                    )),
+                    # Button to download the settings
+                    dbc.Col(dbc.Button(
+                        "Download Settings",
+                        id=dict(
+                            menu=menu_id,
+                            elem="download-settings-button"
+                        ),
+                        block=True,
                     ))
                 ]
             )
@@ -552,7 +552,7 @@ class MenuDrivenFigure:
         # Download the settings when the user clicks the "Download Settings" button
         @app.callback(
             Output("download-settings", "data"),
-            [Input("download-settings-button", "n_clicks")],
+            [Input({"menu": ALL, "elem": "download-settings-button"}, "n_clicks")],
             [State("current-settings", "children")],
             prevent_initial_call=True,
         )
