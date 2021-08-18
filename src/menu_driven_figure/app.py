@@ -22,6 +22,7 @@ class MenuDrivenFigure:
 
     def __init__(
         self,
+        header_menu=None,
         menus=None,
         data=None,
         function=None,
@@ -34,6 +35,7 @@ class MenuDrivenFigure:
     ):
 
         # Save the configuration of the menu
+        self.header_menu_items = header_menu
         self.menus = menus
 
         # Save the provided data
@@ -131,6 +133,9 @@ class MenuDrivenFigure:
 
                 # Parameter menu items
                 self.parameter_menus(),
+
+                # Header menu items
+                self.header_menu(),
 
                 # Allow the user to download the settings as JSON
                 dcc.Download(id="download-settings")
@@ -237,6 +242,39 @@ class MenuDrivenFigure:
             )
             for menu_ix, param_menu in enumerate(self.menus)
         ])
+        
+    def header_menu(self):
+        """Menu shown immediately above the figure"""
+
+        return html.Div(
+            dbc.Card(
+                [dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                # Render each parameter element
+                                self.render_param_elem(param_item)
+                                for param_item in param_menu_column
+                                if param_item.get("show", True)
+                            ]
+                        )
+                        for param_menu_column in self.split_param_columns(
+                            [] if self.header_menu_items is None else self.header_menu_items,
+                            self.param_menu_ncols
+                        )
+                    ]
+                )] + self.header_menu_footer(),
+                body=True
+            ),
+            # Set the ID of the collapse based on the menu
+            id = dict(
+                menu=f"header"
+            ),
+            # Hide the header menu if there are no items to display
+            style=dict(
+                display="none" if self.header_menu_items is None else "block"
+            )
+        )
 
     def split_param_columns(self, param_menu_list, ncols):
 
@@ -458,7 +496,25 @@ class MenuDrivenFigure:
             )
         ]
 
-    def figure_display(self, elem_id="rendered-figure"):
+    def header_menu_footer(self):
+        """Specify the footer to place at the bottom of the header menu."""
+
+        return [
+            dbc.Row(
+                [
+                    dbc.Col(dbc.Button(
+                        "Redraw",
+                        id=dict(
+                            menu="header",
+                            elem="redraw-button"
+                        ),
+                        block=True,
+                    ))
+                ]
+            )
+        ]
+
+    def figure_display(self, elem_id):
         """Return the element used to render the display."""
         return dbc.Card(
             dbc.Row(
