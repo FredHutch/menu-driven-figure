@@ -31,7 +31,8 @@ class MenuDrivenFigure:
         param_menu_ncols=2,     # Number of columns in each parameter menu
         theme="LUMEN",
         title="Interactive Figure",
-        initial_settings=None
+        initial_settings=None,
+        footer_div=[]
     ):
 
         # Save the configuration of the menu
@@ -83,6 +84,12 @@ class MenuDrivenFigure:
         else:
             # Save an empty dict
             self.initial_settings = {}
+
+        # If the user provided `footer_div`, make sure that it is formatted
+        # as a list
+        assert isinstance(footer_div, list)
+        # Save the element
+        self.footer_div = footer_div
 
         ##################
         # SET UP THE APP #
@@ -158,7 +165,8 @@ class MenuDrivenFigure:
                 self.hidden_div(elem_id)
                 for elem_id in self.state_variables
 
-            ]
+            # Add any custom footer elements provided by the user
+            ] + self.footer_div
         )
 
     def hidden_div(self, elem_id, children=None):
