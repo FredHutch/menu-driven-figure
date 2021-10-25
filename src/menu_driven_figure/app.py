@@ -3,8 +3,8 @@
 from copy import copy
 import dash
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 from functools import lru_cache
@@ -451,19 +451,16 @@ class MenuDrivenFigure:
         # Wrap the element up in a Collapse
         return dbc.Collapse(
             dbc.Form(
-                dbc.FormGroup(
-                    [
-                        dbc.Label(
-                            param_item["label"],
-                            style=dict(
-                                marginRight="5px",
-                                marginLeft="15px" if param_item["type"] == "checkbox" else "0px"
-                            )
-                        ),
-                        elem
-                    ],
-                    row=param_item["type"] == "checkbox"
-                )
+                [
+                    dbc.Label(
+                        param_item["label"],
+                        style=dict(
+                            marginRight="5px",
+                            marginLeft="15px" if param_item["type"] == "checkbox" else "0px"
+                        )
+                    ),
+                    elem
+                ]
             ),
             id=f"{param_item['elem_id']}-collapse",
             is_open=True
@@ -475,31 +472,43 @@ class MenuDrivenFigure:
         return [
             dbc.Row(
                 [
-                    dbc.Col(dbc.Button(
-                        "Redraw",
-                        id=dict(
-                            menu=menu_id,
-                            elem="redraw-button"
-                        ),
-                        block=True,
-                    )),
-                    dbc.Col(dbc.Button(
-                        "Close Menu & Redraw",
-                        id=dict(
-                            menu=menu_id,
-                            elem="close-button"
-                        ),
-                        block=True,
-                    )),
+                    dbc.Col(
+                        html.Div(
+                            dbc.Button(
+                                "Redraw",
+                                id=dict(
+                                    menu=menu_id,
+                                    elem="redraw-button"
+                                )
+                            ),
+                            className="d-grid gap-2"
+                        )
+                    ),
+                    dbc.Col(
+                        html.Div(
+                            dbc.Button(
+                                "Close Menu & Redraw",
+                                id=dict(
+                                    menu=menu_id,
+                                    elem="close-button"
+                                )
+                            ),
+                            className="d-grid gap-2"
+                        )
+                    ),
                     # Button to download the settings
-                    dbc.Col(dbc.Button(
-                        "Download Settings",
-                        id=dict(
-                            menu=menu_id,
-                            elem="download-settings-button"
-                        ),
-                        block=True,
-                    ))
+                    dbc.Col(
+                        html.Div(
+                            dbc.Button(
+                                "Download Settings",
+                                id=dict(
+                                    menu=menu_id,
+                                    elem="download-settings-button"
+                                )
+                            ),
+                            className="d-grid gap-2"
+                        )
+                    )
                 ]
             )
         ]
@@ -510,14 +519,18 @@ class MenuDrivenFigure:
         return [
             dbc.Row(
                 [
-                    dbc.Col(dbc.Button(
-                        "Redraw",
-                        id=dict(
-                            menu="header",
-                            elem="redraw-button"
-                        ),
-                        block=True,
-                    ))
+                    dbc.Col(
+                        html.Div(
+                            dbc.Button(
+                                "Redraw",
+                                id=dict(
+                                    menu="header",
+                                    elem="redraw-button"
+                                )
+                            ),
+                            className="d-grid gap-2",
+                        )
+                    )
                 ]
             )
         ]
